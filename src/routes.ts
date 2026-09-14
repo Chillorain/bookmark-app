@@ -3,6 +3,11 @@ import { createRouter, createWebHistory } from 'vue-router';
 export const router = createRouter({
   routes: [
     {
+      path: '/:pathMatch(.*)*',
+      name: 'NotFound',
+      component: () => import('./views/NotFoundView.vue'),
+    },
+    {
       path: '/',
       component: () => import('./views/AuthView.vue'),
     },
@@ -10,8 +15,8 @@ export const router = createRouter({
       path: '/main',
       component: () => import('./views/MainView.vue'),
       children: [
-        { path: '', component: () => import('./components/TestComp.vue'), name: 'main' },
-        { path: 'new', component: () => import('./components/TestComp2.vue') },
+        { path: '', component: () => import('./views/IndexView.vue'), name: 'main' },
+        { path: ':alias', component: () => import('./views/CategoryView.vue') },
       ],
     },
   ],
