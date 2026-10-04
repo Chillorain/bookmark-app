@@ -3,18 +3,28 @@ import { useCategoryStore } from '@/stores/categories.store';
 import { useBookmarkStore } from '@/stores/bookmark.store';
 import { ref, watch, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+import type { Category } from '@/interfaces/category.interface';
 import CategoryHeader from '@/components/CategoryHeader.vue';
 import BookmarkCard from '@/components/BookmarkCard.vue';
+import BookmarkSort from '@/components/BookmarkSort.vue';
+import BookmarkAdd from '@/components/BookmarkAdd.vue';
 
 const route = useRoute();
 const categoryStore = useCategoryStore();
 const bookmarkStore = useBookmarkStore();
 const category = ref<Category>();
 
+function sortBookmarks(sort: string) {
+  bookmarkStore.activeSort = sort;
+  if (category.value) {
+    bookmarkStore.fetchBookmarks(category.value.id, bookmarkStore.activeSort);
+  }
+}
+
 onMounted(() => {
   category.value = categoryStore.getCategoryByAlias(route.params.alias);
   if (category.value) {
-    bookmarkStore.fetchBookmarks(category.value.id);
+    bookmarkStore.fetchBookmarks(category.value.id, bookmarkStore.activeSort);
   }
 });
 
@@ -26,7 +36,7 @@ watch(
   (data) => {
     category.value = categoryStore.getCategoryByAlias(data.alias);
     if (category.value) {
-      bookmarkStore.fetchBookmarks(category.value.id);
+      bookmarkStore.fetchBookmarks(category.value.id, bookmarkStore.activeSort);
     }
   },
 );
@@ -34,12 +44,19 @@ watch(
 
 <template>
   <CategoryHeader v-if="category" :category="category" />
-  <BookmarkCard
-    id="1"
-    image="/public/avatar.png"
-    title="GitHub - gofiber/fiber: ⚡️ Express inspired web framework written in Go"
-    url="https://music.youtube.com/"
-    :category-id="1"
-    :created-at="new Date()"
-  />
+  <BookmarkSort :option="bookmarkStore.activeSort" @sort="sortBookmarks" />
+  <div class="category-list">
+    <BookmarkCard v-for="item in bookmarkStore.bookmarks" :key="item.id" v-bind="item" />
+    <BookmarkAdd v-if="category" :category_id="category.id" />
+  </div>
 </template>
+
+<style scoped>
+.category-list {
+  margin-top: 30px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(10, 350px);
+  gap: 24px;
+}
+</style>
